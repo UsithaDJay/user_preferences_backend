@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from drf_yasg.utils import swagger_auto_schema
 from .models import AccountSettings, NotificationSettings, ThemeSettings, PrivacySettings
 from .serializers import (
     UserSerializer,
@@ -11,8 +12,16 @@ from .serializers import (
     PrivacySettingsSerializer,
 )
 
+
 # User Registration View
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Register a new user",
+        request_body=UserSerializer,
+        responses={201: "User registered successfully", 400: "Invalid input"},
+    )
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
