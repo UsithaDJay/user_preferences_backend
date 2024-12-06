@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class AccountSettings(models.Model):
@@ -70,3 +72,13 @@ class PrivacySettings(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Privacy Settings"
+
+
+@receiver(post_save, sender=User)
+def create_default_preferences(sender, instance, created, **kwargs):
+    if created:
+        AccountSettings.objects.create(
+            user=instance, username=instance.username, email=instance.email, password=instance.password)
+        NotificationSettings.objects.create(user=instance)
+        ThemeSettings.objects.create(user=instance)
+        PrivacySettings.objects.create(user=instance)
