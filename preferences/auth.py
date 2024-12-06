@@ -5,7 +5,6 @@ from rest_framework.exceptions import AuthenticationFailed
 def authenticate(username, password):
     try:
         user = UserData.objects.get(username=username)
-        print (user.password, password)
         if user.password == password:
             return user
     except UserData.DoesNotExist:
