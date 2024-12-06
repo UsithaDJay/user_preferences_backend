@@ -46,11 +46,21 @@ class ThemeSettings(models.Model):
         (DARK, 'Dark'),
     ]
 
+    SMALL = 'small'
+    MEDIUM = 'medium'
+    LARGE = 'large'
+    FONT_SIZE_CHOICES = [
+        (SMALL, 'Small'),
+        (MEDIUM, 'Medium'),
+        (LARGE, 'Large'),
+    ]
+
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='theme_settings')
     theme = models.CharField(
         max_length=50, choices=THEME_CHOICES, default=LIGHT)
-    font_size = models.CharField(max_length=10, default='medium')
+    font_size = models.CharField(
+        max_length=10, choices=FONT_SIZE_CHOICES, default='medium')
 
     def __str__(self):
         return f"{self.user.username}'s Theme Settings"
