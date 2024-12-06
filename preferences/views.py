@@ -9,6 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import UserData, NotificationSettings, ThemeSettings, PrivacySettings
 from .serializers import (
     UserSerializer,
+    LoginSerializer,
     NotificationSettingsSerializer,
     ThemeSettingsSerializer,
     PrivacySettingsSerializer,
@@ -41,10 +42,19 @@ class RegisterView(APIView):
         
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+    @swagger_auto_schema(
+        operation_description="Login an existing user",
+        request_body=LoginSerializer,  # Use the new serializer here
+        responses={
+            200: "Login successful, tokens returned",
+            401: "Invalid credentials",
+        },
+    )
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(username==username, password=password)
+        user = authenticate(username=username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
             return Response({

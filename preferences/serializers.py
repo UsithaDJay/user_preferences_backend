@@ -9,13 +9,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = UserData
         fields = '__all__'
 
-    # def create(self, validated_data):
-    #     user = UserData.objects.create_user(
-    #         username=validated_data['username'],
-    #         email=validated_data['email'],
-    #         password=validated_data['password']
-    #     )
-    #     return user
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        fields = ['username', 'password']
 
 
 class NotificationSettingsSerializer(serializers.ModelSerializer):
