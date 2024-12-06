@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    RegisterView,
     AccountSettingsView,
     NotificationSettingsView,
     ThemeSettingsView,
@@ -7,6 +8,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path('register/', RegisterView.as_view(), name='register'),
     path('account-settings/<int:pk>/',
          AccountSettingsView.as_view(), name='account-settings'),
     path('notification-settings/<int:pk>/',
