@@ -1,15 +1,14 @@
 from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models.signals import post_save, pre_delete
+from django.core.validators import MinLengthValidator
 
 
-class AccountSettings(models.Model):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='account_settings')
-    username = models.CharField(max_length=150, unique=True)
+class UserData(models.Model):
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=20, unique=True, validators=[MinLengthValidator(4)])
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
+    password = models.CharField(max_length=20, validators=[MinLengthValidator(6)])
 
     def __str__(self):
         return self.username
@@ -28,7 +27,7 @@ class NotificationSettings(models.Model):
     ]
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='notification_settings')
+        UserData, on_delete=models.CASCADE, related_name='notification_settings')
     frequency = models.CharField(
         max_length=50, choices=FREQUENCY_CHOICES, default=DAILY)
     email_notifications = models.BooleanField(default=True)
@@ -56,7 +55,7 @@ class ThemeSettings(models.Model):
     ]
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='theme_settings')
+        UserData, on_delete=models.CASCADE, related_name='theme_settings')
     theme = models.CharField(
         max_length=50, choices=THEME_CHOICES, default=LIGHT)
     font_size = models.CharField(
@@ -75,20 +74,25 @@ class PrivacySettings(models.Model):
     ]
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='privacy_settings')
+        UserData, on_delete=models.CASCADE, related_name='privacy_settings')
     profile_visibility = models.CharField(
         max_length=50, choices=PROFILE_VISIBILITY_CHOICES, default=PUBLIC)
     data_sharing = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.user.username}'s Privacy Settings"
+    
 
-
-@receiver(post_save, sender=User)
-def create_default_preferences(sender, instance, created, **kwargs):
+@receiver(post_save, sender=UserData)
+def create_user_preferences(sender, instance, created, **kwargs):
     if created:
-        AccountSettings.objects.create(
-            user=instance, username=instance.username, email=instance.email, password=instance.password)
         NotificationSettings.objects.create(user=instance)
         ThemeSettings.objects.create(user=instance)
         PrivacySettings.objects.create(user=instance)
+
+
+@receiver(pre_delete, sender=UserData)
+def delete_user_preferences(sender, instance, **kwargs):
+    NotificationSettings.objects.filter(user=instance).delete()
+    ThemeSettings.objects.filter(user=instance).delete()
+    PrivacySettings.objects.filter(user=instance).delete()

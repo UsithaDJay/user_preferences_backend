@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import AccountSettings, NotificationSettings, ThemeSettings, PrivacySettings
+from .models import UserData, NotificationSettings, ThemeSettings, PrivacySettings
 
-@admin.register(AccountSettings)
-class AccountSettingsAdmin(admin.ModelAdmin):
-    list_display = ('user', 'username', 'email')
+@admin.register(UserData)
+class UserDataAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email')
 
 @admin.register(NotificationSettings)
 class NotificationSettingsAdmin(admin.ModelAdmin):
