@@ -2,6 +2,12 @@ from .models import UserData
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.exceptions import AuthenticationFailed
 
+def get_token_from_request(request):
+    authorization_header = request.headers.get('Authorization')
+    if not authorization_header:
+        raise AuthenticationFailed("Authorization header is missing.")
+    return authorization_header.split(' ')[1]
+
 def authenticate(username, password):
     try:
         user = UserData.objects.get(username=username)

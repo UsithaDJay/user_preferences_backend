@@ -1,12 +1,11 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.db import transaction
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import AuthenticationFailed
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg.utils import swagger_auto_schema
-from .models import UserData, NotificationSettings, ThemeSettings, PrivacySettings
 from .serializers import (
     UserSerializer,
     LoginSerializer,
@@ -14,11 +13,10 @@ from .serializers import (
     ThemeSettingsSerializer,
     PrivacySettingsSerializer,
 )
-from .auth import authenticate, get_user_from_token
+from .auth import get_token_from_request, authenticate, get_user_from_token
 
 # User Registration View
 class RegisterView(APIView):
-    # permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_description="Register a new user",
         request_body=UserSerializer,
@@ -66,67 +64,169 @@ class LoginView(APIView):
 
 class PreferencesView(APIView):
     def get(self, request):
-        token = request.headers.get('Authorization').split(' ')[1]
-        user = get_user_from_token(token)
         try:
-            user_data = UserData.objects.get(id=user.id)
-            notification_settings = NotificationSettings.objects.get(user_id=user.id)
-            theme_settings = ThemeSettings.objects.get(user_id=user.id)
-            privacy_settings = PrivacySettings.objects.get(user_id=user.id)
-            
-            data = {
-                'user_data': UserSerializer(user_data).data,
-                'notification_settings': NotificationSettingsSerializer(notification_settings).data,
-                'theme_settings': ThemeSettingsSerializer(theme_settings).data,
-                'privacy_settings': PrivacySettingsSerializer(privacy_settings).data,
-            }
-            return Response(data, status=status.HTTP_200_OK)
-        except (UserData.DoesNotExist, NotificationSettings.DoesNotExist, ThemeSettings.DoesNotExist, PrivacySettings.DoesNotExist):
-            return Response({"error": "Preferences not found"}, status=status.HTTP_404_NOT_FOUND)
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            preferences = [
+                {"section": "account_settings", "name": "Account Settings"},
+                {"section": "notification_settings", "name": "Notification Settings"},
+                {"section": "theme_settings", "name": "Theme Settings"},
+                {"section": "privacy_settings", "name": "Privacy Settings"},
+            ]
+            return Response(preferences, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class AccountSettingsView(APIView):
+    """
+    Handles fetching and updating account settings.
+    """
+    def get(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class UpdatePreferencesView(APIView):
-    @swagger_auto_schema(
-        operation_description="Update a specific section of user preferences",
-        request_body=None,
-        responses={
-            200: "Preferences updated successfully",
-            400: "Invalid input or section name",
-            401: "Authentication credentials were not provided or are invalid",
-            404: "Specified preference section not found",
-            500: "Server error",
-        },
-    )
     @transaction.atomic
-    def patch(self, request, section):
-        token = request.headers.get('Authorization').split(' ')[1]
-        user = get_user_from_token(token)
-        data = request.data
-        
+    def patch(self, request):
         try:
-            if section == 'account_settings':
-                instance = UserData.objects.get(id=user.id)
-                serializer = UserSerializer(instance, data=data, partial=True)
-            elif section == 'notification_settings':
-                instance = NotificationSettings.objects.get(user_id=user.id)
-                serializer = NotificationSettingsSerializer(instance, data=data, partial=True)
-            elif section == 'theme_settings':
-                instance = ThemeSettings.objects.get(user_id=user.id)
-                serializer = ThemeSettingsSerializer(instance, data=data, partial=True)
-            elif section == 'privacy_settings':
-                instance = PrivacySettings.objects.get(user_id=user.id)
-                serializer = PrivacySettingsSerializer(instance, data=data, partial=True)
-            else:
-                return Response({'detail': 'Invalid section'}, status=status.HTTP_400_BAD_REQUEST)
-            
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            serializer = UserSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except ObjectDoesNotExist:
             transaction.set_rollback(True)
-            return Response({"error": f"{section.replace('_', ' ').title()} not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            transaction.set_rollback(True)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class NotificationSettingsView(APIView):
+    """
+    Handles fetching and updating notification settings.
+    """
+    def get(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            notification_settings = user.notification_settings
+            serializer = NotificationSettingsSerializer(notification_settings)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @transaction.atomic
+    def patch(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            notification_settings = user.notification_settings
+            serializer = NotificationSettingsSerializer(notification_settings, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            transaction.set_rollback(True)
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            transaction.set_rollback(True)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+class ThemeSettingsView(APIView):
+    """
+    Handles fetching and updating theme settings.
+    """
+    def get(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            theme_settings = user.theme_settings
+            serializer = ThemeSettingsSerializer(theme_settings)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @transaction.atomic
+    def patch(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            theme_settings = user.theme_settings
+            serializer = ThemeSettingsSerializer(theme_settings, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            transaction.set_rollback(True)
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            transaction.set_rollback(True)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PrivacySettingsView(APIView):
+    def get(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            privacy_settings = user.privacy_settings
+            serializer = PrivacySettingsSerializer(privacy_settings)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @transaction.atomic
+    def patch(self, request):
+        try:
+            token = get_token_from_request(request)
+            user = get_user_from_token(token)
+            privacy_settings = user.privacy_settings
+            serializer = PrivacySettingsSerializer(privacy_settings, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except ObjectDoesNotExist:
+            transaction.set_rollback(True)
+            return Response({"error": "Settings not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             transaction.set_rollback(True)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
