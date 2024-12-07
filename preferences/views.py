@@ -18,7 +18,7 @@ from .auth import authenticate, get_user_from_token
 
 # User Registration View
 class RegisterView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_description="Register a new user",
         request_body=UserSerializer,
@@ -42,7 +42,7 @@ class RegisterView(APIView):
         
 
 class LoginView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     @swagger_auto_schema(
         operation_description="Login an existing user",
         request_body=LoginSerializer,  # Use the new serializer here
@@ -87,6 +87,17 @@ class PreferencesView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UpdatePreferencesView(APIView):
+    @swagger_auto_schema(
+        operation_description="Update a specific section of user preferences",
+        request_body=None,
+        responses={
+            200: "Preferences updated successfully",
+            400: "Invalid input or section name",
+            401: "Authentication credentials were not provided or are invalid",
+            404: "Specified preference section not found",
+            500: "Server error",
+        },
+    )
     @transaction.atomic
     def patch(self, request, section):
         token = request.headers.get('Authorization').split(' ')[1]
