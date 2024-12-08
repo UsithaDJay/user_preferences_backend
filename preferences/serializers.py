@@ -3,8 +3,6 @@ from .models import UserData, NotificationSettings, ThemeSettings, PrivacySettin
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
     class Meta:
         model = UserData
         fields = '__all__'
