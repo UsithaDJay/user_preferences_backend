@@ -50,8 +50,12 @@ class LoginView(APIView):
         },
     )
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+        serializer = LoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
         user = authenticate(username=username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
