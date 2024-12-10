@@ -1,0 +1,506 @@
+{
+	"info": {
+		"_postman_id": "059672c2-a6ed-4022-9911-80f476dddaea",
+		"name": "User Preferences API",
+		"description": "Postman collection for User Preferences API endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12207303"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Save Bearer Token\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    if (responseJson.token) {\r",
+							"        // Save the token in the environment variable\r",
+							"        pm.environment.set(\"authToken\", responseJson.token);\r",
+							"        console.log(\"Bearer token saved:\", responseJson.token);\r",
+							"    } else {\r",
+							"        console.log(\"No token found in response.\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"testuser3\",\n    \"email\": \"testuser3@example.com\",\n    \"password\": \"testpassword\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/register/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"register",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Save Bearer Token\", function () {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    if (responseJson.token) {\r",
+							"        // Save the token in the environment variable\r",
+							"        pm.environment.set(\"authToken\", responseJson.token);\r",
+							"        console.log(\"Bearer token saved:\", responseJson.token);\r",
+							"    } else {\r",
+							"        console.log(\"No token found in response.\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"testuser5\",\n    \"password\": \"test5password\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/login/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Preferences list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Account Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/account_settings",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"account_settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Notification Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/notification_settings",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"notification_settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Theme Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/theme_settings",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"theme_settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pricacy Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/privacy_settings",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"privacy_settings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Account Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"testuser5\",\n    \"email\": \"testuser5@example.com\",\n    \"password\": \"test5password\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/account_settings/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"account_settings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Notification Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"frequency\": \"weekly\",\n    \"email_notifications\": false\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/notification_settings/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"notification_settings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Theme Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"theme\": \"dark\",\n    \"font_size\": \"medium\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/theme_settings/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"theme_settings",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Privacy Settings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{authToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer <ACCESS_TOKEN>"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"profile_visibility\": \"private\",\n    \"data_sharing\": true\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/preferences/privacy_settings/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"preferences",
+						"privacy_settings",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
